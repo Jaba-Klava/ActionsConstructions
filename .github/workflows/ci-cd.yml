@@ -1,0 +1,53 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code #извлекает код из репозитория
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 21 # настраивает Java Development Kit версии 21
+        uses: actions/setup-java@v2
+        with:
+          java-version: '21'
+
+      - name: Install dependencies #устанавливает зависимости с помощью Maven
+        run: mvn install
+
+      - name: Run tests #запускает тесты
+        run: mvn test
+
+      - name: Package application #собирает приложение в пакет
+        run: mvn package
+
+        deploy:  # Определяем job для деплоя приложения
+    runs-on: ubuntu-latest  # Указываем, что деплой будет выполняться на Ubuntu
+    needs: build  # Указываем, что этот job зависит от успешного завершения job build
+    if: success()  # Деплой выполняется только если предыдущие шаги завершились успешно
+
+    steps:  # Определяем шаги внутри job
+      - name: Checkout code  # Шаг для клонирования репозитория
+        uses: actions/checkout@v2  # Используем действие для клонирования кода
+
+      - name: Deploy to Railway  # Шаг для развертывания приложения на Railway
+        env: 
+          RAILWAY_API_KEY: ${{ secrets.RAILWAY_API_KEY }}  # Получаем API-ключ Railway из секретов репозитория
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}  # Получаем ID проекта Railway из секретов 
+        run: | 
+          # Отправляем запрос на деплой на Railway 
+          curl -X POST "https://api.railway.app/v2/projects/${RAILWAY_PROJECT_ID}/deploy" \ 
+          -H "Authorization: Bearer ${RAILWAY_API_KEY}" \ 
+          -H "Content-Type: application/json" \ 
+          -d '{ 
+            "branch": "main"  # Указываем ветку, которую хотим развернуть 
+          }'
