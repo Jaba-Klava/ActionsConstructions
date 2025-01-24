@@ -13,24 +13,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code #извлекает код из репозитория
+      - name: Checkout code # Извлекает код из репозитория
         uses: actions/checkout@v2
 
-      - name: Set up JDK 21 # настраивает Java Development Kit версии 21
+      - name: Set up JDK 21 # Настраивает Java Development Kit версии 21
         uses: actions/setup-java@v2
         with:
           java-version: '21'
 
-      - name: Install dependencies #устанавливает зависимости с помощью Maven
+      - name: Install dependencies # Устанавливает зависимости с помощью Maven
         run: mvn install
 
-      - name: Run tests #запускает тесты
+      - name: Run tests # Запускает тесты
         run: mvn test
 
-      - name: Package application #собирает приложение в пакет
+      - name: Package application # Собирает приложение в пакет
         run: mvn package
 
-        deploy:  # Определяем job для деплоя приложения
+  deploy:  # Определяем job для деплоя приложения
     runs-on: ubuntu-latest  # Указываем, что деплой будет выполняться на Ubuntu
     needs: build  # Указываем, что этот job зависит от успешного завершения job build
     if: success()  # Деплой выполняется только если предыдущие шаги завершились успешно
@@ -49,5 +49,5 @@ jobs:
           -H "Authorization: Bearer ${RAILWAY_API_KEY}" \ 
           -H "Content-Type: application/json" \ 
           -d '{ 
-            "branch": "main"  # Указываем ветку, которую хотим развернуть 
+            "branch": "master"  # Указываем ветку, которую хотим развернуть 
           }'
